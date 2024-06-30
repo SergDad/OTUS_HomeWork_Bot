@@ -35,20 +35,21 @@ namespace HomeWork
         {
             Console.WriteLine("Добро пожаловать в БОТ! Доступны команды: /start, /help, /info, /exit");
 
-            string userName = "";
-            bool setUserName = false;
-            bool exit=false;
+            var userName = "";
+            var userNameGreeting = "";
+            var setUserName = false;
+            var exit = false;
             do
             {
                 string message = Console.ReadLine() ?? string.Empty;
                 // предварительная обработка
-                string messageCommand="";
-                string messageParam="";
-                int position = message.IndexOf(' ', 1);
+                var messageCommand = "";
+                var messageParam = "";
+                var position = message.IndexOf(' ', 0);
                 if (position >= 0)
                 {
-                    messageCommand=message.Substring(0, position).ToLower();
-                    messageParam = message.Substring(position+1);
+                    messageCommand = message.Substring(0, position).ToLower();
+                    messageParam = message.Substring(position + 1);
                 }
                 else
                 {
@@ -57,19 +58,24 @@ namespace HomeWork
                 switch (messageCommand)
                 {
                     case "/start":
-                        Console.WriteLine("Введите ваше имя:");
+                        Console.WriteLine("Стартуем! Введите ваше имя:");
                         userName = Console.ReadLine() ?? string.Empty;
-                        if (userName.Length>0)
+                        if (userName.Length > 0)
                         {
                             setUserName = true;
-                            Console.WriteLine($"Привет, {userName}!");
+                            userNameGreeting = ", " + userName;
+                            Console.WriteLine($"Привет{userNameGreeting}!");
                             Console.WriteLine("Теперь доступна еще одна команда /echo - эхо");
                         }
-                        break;  
+                        else
+                        {
+                            Console.WriteLine("Неудачный ввод имени. Будет желание - повторите команду /start.");
+                        }
+                        break;
                     case "/help":
                         if (setUserName)
                         {
-                            Console.WriteLine($"Спасибо за вопрос, {userName}!");
+                            Console.WriteLine($"Спасибо за вопрос{userNameGreeting}!");
                             Console.WriteLine("Список доступных команд: /start - начать, /help - помощь, /info - информация, /echo - эхо, /exit - выход");
                         }
                         else
@@ -80,35 +86,27 @@ namespace HomeWork
                     case "/info":
                         if (setUserName)
                         {
-                            Console.WriteLine($"Спасибо за вопрос, {userName}!");
+                            Console.WriteLine($"Спасибо за вопрос{userNameGreeting}!");
                         }
                         Console.WriteLine("Версия программы: v.0.1, Дата создания: 27.06.2024");
                         break;
-                    case "/echo":
-                        if (!setUserName)
-                        {
-                            Console.WriteLine("Начните с команды /start, чтобы ввести ваше имя");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"{userName}, Вы ввели \"{messageParam}\"");
-                        }
+                    case "/echo" when !setUserName:
+                        Console.WriteLine("Команда не доступна. Начните с команды /start и введите Ваше имя.");
+                        break;
+                    case "/echo" when setUserName:
+                        Console.WriteLine($"{userName}, Вы ввели \"{messageParam}\".");
                         break;
                     case "/exit":
-                        exit=true;
-                        //var text1 = "До свидания";
-                        //if (setUserName)
-                        //    text1 += " " + userName;
-                        //Console.WriteLine(text1 +"!");
-                        Console.WriteLine($"До свидания {userName}!");
+                        exit = true;
+                        Console.WriteLine($"До свидания{userNameGreeting}!");
                         break;
                     default:
-                        Console.WriteLine($"Вы ввели: '{message}'");
+                        Console.WriteLine($"Вы ввели: \"{message}\"{userNameGreeting}.");
                         Console.WriteLine($"Это неизвестная мне команда. Для помощи введите /help.");
                         break;
                 }
-                                                                        
+
             } while (!exit);
         }
     }
-    }
+}

@@ -1,5 +1,7 @@
-﻿using System.Diagnostics.Metrics;
-using System.Drawing;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 
 namespace Stack
 /*Нужно создать класс Stack у которого будут следующие свойства
@@ -41,42 +43,75 @@ var s =Stack.Concat(new Stack("a", "b", "c"), new Stack("1", "2", "3"), new Stac
 // в стеке s теперь элементы - "c", "b", "a" "3", "2", "1", "В", "Б", "А" <- верхний      */
 /*        Доп. задание 3
 Вместо коллекции - создать класс StackItem, который
-доступен только для класс Stack (отдельно объект класса StackItem вне Stack создать нельзя)
-хранит текущее значение элемента стека
-ссылку на предыдущий элемент в стеке
-Методы, описанные в основном задании переделаны под работу со StackItem                     */
+ - доступен только для класс Stack (отдельно объект класса StackItem вне Stack создать нельзя)
+ - хранит текущее значение элемента стека
+ - ссылку на предыдущий элемент в стеке
+ - Методы, описанные в основном задании переделаны под работу со StackItem                     */
 {
     internal class Stack
     {
         private List<string>? _stack;
-        private int _point;
-        public Stack(params string[] arg )
+        public Stack(params string[] arg)
         {
             _stack = new();
-            _point = -1;
-            foreach (string data in arg) 
+            foreach (string data in arg)
             {
                 Add(data);
             }
-            Console.WriteLine($"constr Stack {String.Join(";  ", _stack)} Size = {this.Size}  {_point}");
         }
         public void Add(string data)
         {
             _stack.Add(data);
-            _point++;
         }
-        public string Pop()
+        public string? Pop()
         {
-            string rezult=_stack.Last();
-            _stack.Remove(rezult); 
+            string? rezult;
+            try
+            {
+                if (_stack.Count > 0)
+                {
+                    rezult = _stack.Last();
+                    _stack.Remove(rezult);
+                }
+                else
+                    throw new Exception("Стек пустой");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Ошибка: {e.Message}");
+                rezult = "Стек пустой";
+            }
             return rezult;
         }
-        public string Top() => _stack.Last();
-         public int Size()
+        public string? Top
         {
-            return 15;
-        }//=> 5; // _stack.Count;     
-    };
+            get
+            {
+                return (_stack.Count) > 0 ? _stack.Last() : null;
+            }
+        }
+        // public int Size => _stack.Count;
+        public int Size
+        {
+            get => _stack.Count;
+        }
+        public static Stack Concat(params Stack[] stacks)
+        {
+            var newStack = new Stack();
+            foreach (var stack in stacks)
+            {
+                while (stack.Size>0)
+                {
+                    newStack.Add(stack.Pop());
+                }
+            }
+            return newStack;
+        }
+        internal void Lst()
+        {
+            Console.WriteLine($"My components: {String.Join(", ", _stack)}");
+        }
+    }
     internal class Program
     {
         static void Main(string[] args)
@@ -95,9 +130,10 @@ var s =Stack.Concat(new Stack("a", "b", "c"), new Stack("1", "2", "3"), new Stac
             s.Pop();
             // size = 0, Top = null
             Console.WriteLine($"size = {s.Size}, Top = {(s.Top == null ? "null" : s.Top)}");
-            // s.Pop();
+            s.Pop();
+            var nStack = Stack.Concat(new Stack("a", "b", "c"), new Stack("1", "2", "3"), new Stack("А", "Б", "В"));
+            nStack.Lst();
 
-            Console.WriteLine("Hello, World!");
         }
     }
 }

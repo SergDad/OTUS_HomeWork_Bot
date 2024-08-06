@@ -41,14 +41,9 @@ s.Merge(new Stack("1", "2", "3"))
 и возвращает новый стек с элементами каждого стека в порядке параметров, но сами элементы записаны в обратном порядке
 var s =Stack.Concat(new Stack("a", "b", "c"), new Stack("1", "2", "3"), new Stack("А", "Б", "В"));
 // в стеке s теперь элементы - "c", "b", "a" "3", "2", "1", "В", "Б", "А" <- верхний      */
-/*        Доп. задание 3
-Вместо коллекции - создать класс StackItem, который
- - доступен только для класс Stack (отдельно объект класса StackItem вне Stack создать нельзя)
- - хранит текущее значение элемента стека
- - ссылку на предыдущий элемент в стеке
- - Методы, описанные в основном задании переделаны под работу со StackItem                     */
+
 {
-    internal class Stack
+    public class Stack
     {
         private List<string>? _stack;
         public Stack(params string[] arg)
@@ -61,14 +56,14 @@ var s =Stack.Concat(new Stack("a", "b", "c"), new Stack("1", "2", "3"), new Stac
         }
         public void Add(string data)
         {
-            _stack.Add(data);
+            _stack?.Add(data);
         }
         public string? Pop()
         {
             string? rezult;
             try
             {
-                if (_stack.Count > 0)
+                if (_stack?.Count > 0)
                 {
                     rezult = _stack.Last();
                     _stack.Remove(rezult);
@@ -112,6 +107,16 @@ var s =Stack.Concat(new Stack("a", "b", "c"), new Stack("1", "2", "3"), new Stac
             Console.WriteLine($"My components: {String.Join(", ", _stack)}");
         }
     }
+    public static class StackExtensions
+    {
+        public static void Merge(this Stack stack1, Stack stack2)
+        {
+            while (stack2.Size > 0)
+            {
+                stack1.Add(stack2.Pop());
+            }
+        }
+    }
     internal class Program
     {
         static void Main(string[] args)
@@ -131,9 +136,15 @@ var s =Stack.Concat(new Stack("a", "b", "c"), new Stack("1", "2", "3"), new Stac
             // size = 0, Top = null
             Console.WriteLine($"size = {s.Size}, Top = {(s.Top == null ? "null" : s.Top)}");
             s.Pop();
-            var nStack = Stack.Concat(new Stack("a", "b", "c"), new Stack("1", "2", "3"), new Stack("А", "Б", "В"));
-            nStack.Lst();
-
+            Console.WriteLine("================");
+            Console.WriteLine("Проверка Merge: ");
+            s = new Stack("a", "b", "c");
+            s.Merge(new Stack("1", "2", "3"));
+            s.Lst();
+            Console.WriteLine("================");
+            Console.WriteLine("Проверка Concat: ");
+            s = Stack.Concat(new Stack("a", "b", "c"), new Stack("1", "2", "3"), new Stack("А", "Б", "В"));
+            s.Lst();
         }
     }
 }

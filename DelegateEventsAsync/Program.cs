@@ -79,69 +79,62 @@ namespace DelegateEventsAsync
                 return;
             }
 
-            using 
-                ImageDownloader? downloader = new ();
-
-            // Подписка на события.
-            downloader.ImageStarted += (fileName) =>
+            using (ImageDownloader? downloader = new())
             {
-                Console.WriteLine($"Скачивание файла {fileName} началось");
-                downloadStatus[fileName] = false; // Устанавливаем состояние "не загружено".
-            };
-
-            downloader.ImageCompleted += (fileName) =>
-            {
-                Console.WriteLine($"Скачивание файла {fileName} закончилось");
-                downloadStatus[fileName] = true; // Устанавливаем состояние "не загружено".
-            };
-
-            CancellationTokenSource cts = new CancellationTokenSource();
-
-            // Синхронное скачивание файлов.
-            Console.WriteLine("===> Начинается синхронное скачивание файлов...");
-            downloader.Download(urls, saveDirectory, cts.Token);
-            Console.WriteLine("Синхронное скачивание завершено.");
-
-            //// Асинхронное скачивание файлов.
-            //Console.WriteLine("===> Начинается асинхронное скачивание файлов...");
-            //var downloadTasks = await downloader.DownloadAsync(urls, saveDirectory, cts.Token);
-
-            // Запуск задачи для ожидания нажатия клавиш.
-            Task.Run(() =>
-            {
-                Console.WriteLine("--->Нажмите клавишу А для остановки загрузки или любую другую для вывода статуса");
-                while (true)
+                // Подписка на события.
+                downloader.ImageStarted += (fileName) =>
                 {
-                    var key = Console.ReadKey(true).Key;
-                    if (key == ConsoleKey.A || key == ConsoleKey.F)
-                    {
-                        Console.WriteLine("Остановка загрузки...");
-                        cts.Cancel();
-                        Environment.Exit(0);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Текущее состояние загрузки картинок:");
-                        foreach (var ds in downloadStatus)
-                        {
-                            Console.WriteLine($"   cостояние загрузки {ds.Key}: {ds.Value}");
-                        }
-                    }
-                    Console.WriteLine("--->Нажмите клавишу А для остановки загрузки или любую другую для вывода статуса");
-                }
-            });
+                    Console.WriteLine($"Скачивание файла {fileName} началось");
+                    downloadStatus[fileName] = false; // Устанавливаем состояние "не загружено".
+                };
 
-            //// Ожидание завершения всех асинхронных задач.
-            //await Task.WhenAll(downloadTasks);
-            //Console.WriteLine("Асинхронное скачивание завершено.");
-            Console.ReadLine();
-            downloader.Dispose();
-            //downloader=null;
-            Console.WriteLine("Ожидание останова");
-            //GC.Collect();
-            //GC.WaitForPendingFinalizers();
-            //GC.Collect();
-            Console.ReadLine();
+                downloader.ImageCompleted += (fileName) =>
+                {
+                    Console.WriteLine($"Скачивание файла {fileName} закончилось");
+                    downloadStatus[fileName] = true; // Устанавливаем состояние "не загружено".
+                };
+
+                CancellationTokenSource cts = new CancellationTokenSource();
+
+                // Синхронное скачивание файлов.
+                Console.WriteLine("===> Начинается синхронное скачивание файлов...");
+                downloader.Download(urls, saveDirectory, cts.Token);
+                Console.WriteLine("Синхронное скачивание завершено.");
+
+                //// Асинхронное скачивание файлов.
+                Console.WriteLine("===> Начинается асинхронное скачивание файлов...");
+                var downloadTasks = await downloader.DownloadAsync(urls, saveDirectory, cts.Token);
+
+                // Запуск задачи для ожидания нажатия клавиш.
+                Task.Run(() =>
+                {
+                    Console.WriteLine("--->Нажмите клавишу А для остановки загрузки или любую другую для вывода статуса");
+                    while (true)
+                    {
+                        var key = Console.ReadKey(true).Key;
+                        if (key == ConsoleKey.A || key == ConsoleKey.F)
+                        {
+                            Console.WriteLine("Остановка загрузки...");
+                            cts.Cancel();
+                            Environment.Exit(0);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Текущее состояние загрузки картинок:");
+                            foreach (var ds in downloadStatus)
+                            {
+                                Console.WriteLine($"   cостояние загрузки {ds.Key}: {ds.Value}");
+                            }
+                        }
+                        Console.WriteLine("--->Нажмите клавишу А для остановки загрузки или любую другую для вывода статуса");
+                    }
+                });
+
+                // Ожидание завершения всех асинхронных задач.
+                await Task.WhenAll(downloadTasks);
+                Console.WriteLine("Асинхронное скачивание завершено.");
+                downloader.Dispose();
+            }
         }
     }
 }

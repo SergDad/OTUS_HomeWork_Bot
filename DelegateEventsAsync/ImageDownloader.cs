@@ -28,19 +28,14 @@ namespace DelegateEventsAsync
     // Если Вы скачивали картинку с использованием WebClient.DownloadFile,
     // то используйте теперь WebClient.DownloadFileTaskAsync - он возвращает Task.
 
-    public class ImageDownloader:IDisposable
+    public class ImageDownloader: IDisposable
     {
         // Описание событий (event).
         public event Action<string>? ImageStarted;
         public event Action<string>? ImageCompleted;
-        
-        private readonly HttpClient _httpClient;
 
-        public ImageDownloader() 
-        { 
-         _httpClient = new HttpClient();
-        }
-        
+        private readonly HttpClient _httpClient = new();
+
         // Метод для синхронного скачивания.
         public void Download(List<string> urls, string directory, CancellationToken cancellationToken)
         {
@@ -53,8 +48,6 @@ namespace DelegateEventsAsync
                     using (var response = _httpClient.GetAsync(url, cancellationToken).Result)
                     {
                         response.EnsureSuccessStatusCode();
-
-
                         var imageBytes = response.Content.ReadAsByteArrayAsync().Result;
                         if (cancellationToken.IsCancellationRequested)
                             break;
@@ -85,11 +78,18 @@ namespace DelegateEventsAsync
                     ImageStarted?.Invoke(fileName);
                     try
                     {
-                        var imageBytes = await _httpClient.GetByteArrayAsync(url);
-                        if (cancellationToken.IsCancellationRequested)
-                            return;
-                        await File.WriteAllBytesAsync(fileName, imageBytes);
-                        ImageCompleted?.Invoke(fileName);
+                        using (var response = await _httpClient.GetAsync(url, cancellationToken))
+                        {
+                            response.EnsureSuccessStatusCode();
+                            var imageBytes = await response.Content.ReadAsByteArrayAsync();
+                            if (cancellationToken.IsCancellationRequested)
+                                return;
+                            using (var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                            {
+                                await fileStream.WriteAsync(imageBytes, 0, imageBytes.Length);
+                            }
+                            ImageCompleted?.Invoke(fileName);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -102,9 +102,8 @@ namespace DelegateEventsAsync
 
         // Реализация IDisposable для правильного завершения работы с HttpClient
         public void Dispose()
-        {
-            Console.WriteLine($"Вызов Dispose {this.ToString}");
-            //_httpClient.Dispose();
+        {          
+            _httpClient.Dispose();
             GC.SuppressFinalize(this);
         }
 

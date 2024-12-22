@@ -43,7 +43,7 @@ namespace RihterCollections
             const Int32 count = 10000000;
             using (new OperationTimer("List<String>"))
             {
-                List<String> l = new List<String>();
+                List<String> l = new List<String>(); //  почему без count?
                 for (Int32 n = 0; n < count; n++)
                 {
                     l.Add(" X ");
